@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر باريس للأثاث</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- الهيدر (Header) -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">متجر باريس للأثاث</div>
+                
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="ابحث عن أثاثك المفضل..." onkeypress="if(event.key === 'Enter') applyFilters()">
+                    <button class="search-btn" onclick="applyFilters()" aria-label="بحث"><i class="fas fa-search"></i> بحث</button>
+                </div>
+
+                <div class="nav-links">
+                    <a href="index.html" class="nav-item">الرئيسية</a>
+                    <a href="products.html" class="nav-item">المنتجات</a>
+                    <a href="about.html" class="nav-item">من نحن</a>
+                    <a href="contact.html" class="nav-item">اتصل بنا</a>
+                    <a href="cart.html" class="cart-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count">0</span>
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <section class="container">
+        <h2 class="section-title" style="text-align: center; margin: 40px 0;">جميع المنتجات</h2>
+
+        <!-- نظام الفلترة الذكي (Smart Filtering System) -->
+        <div class="filters-container">
+            <div class="filter-group">
+                <label for="categoryFilter"><i class="fas fa-th-large"></i> الفئة:</label>
+                <select id="categoryFilter" onchange="applyFilters()">
+                    <option value="all">الكل</option>
+                    <option value="أسرة">أسرة</option>
+                    <option value="كراسي">كراسي</option>
+                    <option value="كنب">كنب</option>
+                    <option value="إضاءة">إضاءة</option>
+
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="priceFilter"><i class="fas fa-money-bill-wave"></i> السعر الأقصى:</label>
+                <input type="number" id="priceFilter" placeholder="مثلاً: 2000" oninput="applyFilters()">
+            </div>
+
+            <div class="filter-group">
+                <label for="sortFilter"><i class="fas fa-sort-amount-down"></i> ترتيب حسب:</label>
+                <select id="sortFilter" onchange="applyFilters()">
+                    <option value="default">الافتراضي</option>
+                    <option value="price-asc">السعر: من الأقل للأعلى</option>
+                    <option value="price-desc">السعر: من الأعلى للأقل</option>
+                    <option value="rating">التقييم الأعلى</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- شبكة المنتجات (Product Grid) -->
+        <div id="productsGrid" class="product-grid">
+            <!-- سيتم تحميل المنتجات هنا بواسطة JavaScript -->
+        </div>
+        
+        <div id="noResults" style="display: none; text-align: center; padding: 80px 20px; background: white; border-radius: 12px; box-shadow: var(--shadow);">
+            <i class="fas fa-search-minus" style="font-size: 80px; color: #ddd; margin-bottom: 20px;"></i>
+            <h3 style="font-size: 24px; color: #555;">عذراً، لم نجد ما تبحث عنه</h3>
+            <p style="color: #888; margin-bottom: 30px;">جرب كلمات بحث أخرى أو قم بتغيير الفلاتر.</p>
+            <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                <button onclick="resetFilters()" class="btn-primary" style="background: #6c757d;">إعادة ضبط الفلاتر</button>
+                <a href="checkout.html" class="btn-primary">إكمال عملية الشراء <i class="fas fa-shopping-cart"></i></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- الفوتر (Footer) -->
+    <footer>
+        <div class="container">
+            <div class="copyright">
+                &copy; 2026 جميع الحقوق محفوظة لمتجر  باريس للأثاث
+            </div>
+        </div>
+    </footer>
+
+    <!-- ملفات JavaScript -->
+    <script src="js/products.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchParam = urlParams.get('search');
+            const categoryParam = urlParams.get('category');
+
+            if (searchParam) document.getElementById('searchInput').value = searchParam;
+            if (categoryParam) document.getElementById('categoryFilter').value = categoryParam;
+
+            applyFilters();
+        });
+
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value;
+            const category = document.getElementById('categoryFilter').value;
+            const maxPrice = document.getElementById('priceFilter').value;
+            const sortBy = document.getElementById('sortFilter').value;
+
+            let filtered = [...window.productsData];
+
+            // 1. البحث الذكي
+            if (query) filtered = smartSearch(query, filtered);
+
+            // 2. فلترة الفئة
+            if (category !== 'all') filtered = filtered.filter(p => p.category === category);
+
+            // 3. فلترة السعر
+            if (maxPrice) filtered = filtered.filter(p => p.price <= parseFloat(maxPrice));
+
+            // 4. الترتيب
+            if (sortBy === 'price-asc') filtered.sort((a, b) => a.price - b.price);
+            else if (sortBy === 'price-desc') filtered.sort((a, b) => b.price - a.price);
+            else if (sortBy === 'rating') filtered.sort((a, b) => b.rating - a.rating);
+
+            renderProducts(filtered);
+        }
+
+        function renderProducts(data) {
+            const grid = document.getElementById('productsGrid');
+            const noResults = document.getElementById('noResults');
+            grid.innerHTML = '';
+
+            if (data.length === 0) {
+                grid.style.display = 'none';
+                noResults.style.display = 'block';
+                return;
+            }
+
+            grid.style.display = 'grid';
+            noResults.style.display = 'none';
+            data.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="product-image">
+                        <img src="${product.image}" alt="${product.name}">
+                    </div>
+                    <div class="product-info">
+                        <span class="product-category">${product.category}</span>
+                        <h3 class="product-name">${product.name}</h3>
+                        <div style="margin-bottom: 10px; color: #ffc107;">
+                            ${'<i class="fas fa-star"></i>'.repeat(Math.floor(product.rating))}
+                            ${product.rating % 1 !== 0 ? '<i class="fas fa-star-half-alt"></i>' : ''}
+                        </div>
+                        <div class="product-price">${product.price.toLocaleString()} ر.س</div>
+                        <button class="add-to-cart" onclick="addToCart(${product.id})"><i class="fas fa-cart-plus"></i> إضافة للسلة</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = 'all';
+            document.getElementById('priceFilter').value = '';
+            document.getElementById('sortFilter').value = 'default';
+            applyFilters();
+        }
+    </script>
+</body>
+</html>
